@@ -8,6 +8,19 @@
     <link rel="stylesheet" href="/static/bootstrap/css/bootstrap.min.css">
     <script src="/static/jquery-3.2.1.min.js"></script>
     <script src="/static/bootstrap/js/bootstrap.min.js"></script>
+    <style>
+        body{
+            background-color: #F0EBD5;
+        }
+        ol{
+            list-style-type:none;
+            counter-reset:sectioncounter;
+        }
+        ol li:before {
+        content: "问题"counter(sectioncounter)':';
+        counter-increment:sectioncounter;
+        }
+    </style>
 </head>
 <body>
 <div class="container-fluid">
@@ -89,18 +102,14 @@
                 {% csrf_token %}
                 <div class="row">
                     <div class="col-md-2 col-md-offset-10">
-                        <input type="button" value="添加" class="btn btn-success">
+                        <input type="button" value="添加" class="btn btn-success" id="add">
                         <input type="submit" value="保存" class="btn btn-primary">
                     </div>
                 </div>
-
-                {#                <div><span>{{ foo.paper_question__title }}</span>#}
-                {#                <span>{{ foo.paper_question__question_type__title }}</span>#}
-                {#                <span>{{ foo.paper_question__question_type__choice_type }}</span>#}
-                {#                <span>{{ foo.paper_question__question_type__score_type }}</span>#}
-                {#                <span>{{ foo.paper_question__question_type__text_type }}</span></div>#}
+                <ol>
 
                 {% for foo in data %}
+                    <li>
                     <div class="head row">
                     <div class="col-md-5 col-md-offset-3">
 
@@ -111,56 +120,90 @@
                             {% if item.title == foo.paper_question__question_type__title %}
                                 <option value="{{ item.title }}" selected>{{ item.title }}</option>
                             {% else %}
-                                <option value="{{ item.title }}" onclick="sel()">{{ item.title }}</option>
+                                <option value="{{ item.title }}">{{ item.title }}</option>
                             {% endif %}
                         {% endfor %}
                     </select>
-{#                    {% for foo in select %}#}
-{#                        <input type="checkbox" >#}
-{#                    {% endfor %}#}
 
                     </div>
                     </div>
+                    <div class="col-md-1 col-md-offset-3 del"><strong>X</strong></div>
                     </div>
-{#                    <div onclick="sel()">123</div>#}
-                    <hr>
-
-
-
-
-
-
+                    <hr style="height:3px;border:none;border-top:3px double black;">
+                    </li>
                 {% endfor %}
 
+                </ol>
             </form>
 
         </div>
     </div>
 </div>
     <script>
-        $('option').each(function () {
+        <!--监听单选下拉框 若为单选则显示-->
+        $(document).on('change','select',function () {
+{#            console.log($(this).val());#}
+            if($(this).val() === '单选') {
+                {#                    console.log($(this).val());#}
+                $(this).parent().append('<a class="add">+添加选项</a>');
+                {% for foo in select %}
+                    $(this).parent().append('<div><input type="checkbox" value="{{ foo.title }}">{{ foo.title }}{{ foo.score }}分</div>');
+                {% endfor %}
+            }
 
+            else {
+                $(this).siblings().remove('a');
+                    $(this).siblings().remove('div')
+                }
+
+
+
+        });
+        <!--初始选定为下拉框将选项显示-->
+        $('option').each(function () {
+{#            console.log($(this).val());#}
             if($(this).val() === '单选' && $(this).attr('selected') === 'selected')
                 {
 {#                    console.log($(this).val());#}
-            $(this).parent().parent().append('<a type="display: inline-block">+添加选项</a>');
+            $(this).parent().parent().append('<span class="add_item" style="color: #2e6da4">+添加选项</apan>');
             {% for foo in select %}
-                $(this).parent().parent().append('<div><input type="checkbox" value="{{ foo.title }}">{{ foo.title }}{{ foo.score }}分</div>');
+                $(this).parent().parent().append('<div><input type="checkbox" value="{{ foo.title }}">{{ foo.title }}{{ foo.score }}分<span class="del_item"><strong>X</strong></span></div>');
             {% endfor %}
 
 
         }
         });
-        function sel() {
-            console.log(this.value);
-{#            if ($(this).val() === '单选' && $(this).attr('selected') === 'selected') {#}
-{#                console.log($(this).val());#}
-{#                $(this).parent().parent().append('<a type="display: inline-block">+添加选项</a>');#}
-{#                {% for foo in select %}#}
-{#                    $(this).parent().parent().append('<div><input type="checkbox" value="{{ foo.title }}">{{ foo.title }}{{ foo.score }}分</div>');#}
-{#                {% endfor %}#}
-{#            }#}
-        }
+        <!--监听删除问题-->
+        $(document).on('click','.del',function () {
+            $(this).parent().parent().remove()
+
+        });
+        <!--添加问题-->
+        $('#add').on('click',function () {
+            $('ol').append('                    <li>\n' +
+                '                    <div class="head row">\n' +
+                '                    <div class="col-md-5 col-md-offset-3">\n' +
+                '                    <div><span>问题：</span><textarea cols="5" rows="2" class="form-control"></textarea></div>\n' +
+                '                    <div style="width: 30%"><span>类型：</span><select class="form-control" >\n' +
+                '                                <option value="打分1~10" selected>打分1~10</option>\n' +
+                '                                <option value="单选">单选</option>\n' +
+                '                                <option value="文本">文本</option>\n' +
+                '                    </select>\n' +
+                '                    </div>\n' +
+                '                    </div>\n' +
+                '                    <div class="col-md-1 col-md-offset-3 del"><strong>X</strong></div>\n' +
+                '                    </div>\n' +
+                '                    <hr style="height:3px;border:none;border-top:3px double black;">\n' +
+                '                    </li>')
+        });
+    <!--监听+添加选项-->
+    $(document).on('click','.add_item',function () {
+        $(this).parent().parent().append('<div><input type="checkbox" value="n">随便多少2分<span class="del_item"><strong>X</strong></span></div></div>');
+    });
+    <!--监听删除del_item-->
+    $(document).on('click','.del_item',function () {
+        $(this).parent().remove()
+    })
     </script>
 </body>
 </html>
